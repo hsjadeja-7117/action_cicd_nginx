@@ -18,7 +18,7 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.ACTIONCICD }}
           REMOTE_HOST: ${{ secrets.HOST_DNS }}
-          REMOTE_USER: ${{ secrets.USERNAME }}
+          REMOTE_USER: ${{ secrets.USER_NAME }}
           TARGET: ${{ secrets.TARGET_DIR }}
 
       - name: Execute Commands on EC2
