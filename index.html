@@ -1,0 +1,3942 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#080c10" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>RHCSA — Linux Administration Study Guide</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=Instrument+Serif:ital@0;1&display=swap"
+    rel="stylesheet" />
+
+  <style>
+    /* ═══════════════════════════════════════════════════════
+     RESET & TOKENS
+  ═══════════════════════════════════════════════════════ */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #080c10;
+      --surface: #0e1318;
+      --surface2: #141a22;
+      --surface3: #1a2230;
+      --border: rgba(255, 255, 255, 0.07);
+      --accent: #00e5c0;
+      --accent2: #7b5cf0;
+      --text: #e8edf2;
+      --muted: #5a6472;
+      --muted2: #8a95a0;
+      --glow: 0 0 40px rgba(0, 229, 192, 0.15);
+      --glow-lg: 0 0 80px rgba(0, 229, 192, 0.2);
+      --radius: 2px;
+      --nav-h: 68px;
+      --bot-nav-h: 0px;
+      /* set by JS on mobile */
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+      --easing: cubic-bezier(.22, .1, .18, 1);
+    }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 15px;
+      line-height: 1.7;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      padding-bottom: var(--bot-nav-h);
+    }
+
+    /* ── Scroll progress bar ── */
+    #progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 2px;
+      width: 0%;
+      background: var(--accent);
+      z-index: 9999;
+      transition: width 0.1s linear;
+      box-shadow: 0 0 8px rgba(0, 229, 192, 0.6);
+      pointer-events: none;
+    }
+
+    /* ── Reduced motion ── */
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════
+     CUSTOM CURSOR (desktop only)
+  ═══════════════════════════════════════════════════════ */
+    @media (pointer: fine) {
+      body {
+        cursor: none;
+      }
+
+      .cursor {
+        width: 10px;
+        height: 10px;
+        background: var(--accent);
+        border-radius: 50%;
+        position: fixed;
+        pointer-events: none;
+        z-index: 9998;
+        transition: transform 0.15s ease;
+        mix-blend-mode: difference;
+      }
+
+      .cursor-ring {
+        width: 36px;
+        height: 36px;
+        border: 1px solid rgba(0, 229, 192, 0.4);
+        border-radius: 50%;
+        position: fixed;
+        pointer-events: none;
+        z-index: 9997;
+        transition: all 0.25s ease;
+      }
+    }
+
+    @media (pointer: coarse) {
+
+      .cursor,
+      .cursor-ring {
+        display: none !important;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════
+     DESKTOP NAVIGATION
+  ═══════════════════════════════════════════════════════ */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 500;
+      height: var(--nav-h);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 60px;
+      background: rgba(8, 12, 16, 0.88);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      text-decoration: none;
+      z-index: 1;
+    }
+
+    .nav-logo span {
+      color: var(--text);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 36px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--muted2);
+      text-decoration: none;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+      position: relative;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 1px;
+      background: var(--accent);
+      transition: width 0.3s;
+    }
+
+    .nav-links a:hover {
+      color: var(--accent);
+    }
+
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+
+    .nav-cta {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 10px 24px;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+
+    .nav-cta:hover {
+      background: var(--accent);
+      color: var(--bg);
+      box-shadow: var(--glow);
+    }
+
+    /* Hamburger — shown at ≤900px */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      z-index: 601;
+      position: relative;
+      border-radius: 4px;
+      min-width: 44px;
+      min-height: 44px;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: var(--accent);
+      transition: all 0.3s var(--easing);
+      transform-origin: center;
+    }
+
+    .hamburger.open span:nth-child(1) {
+      transform: translateY(7px) rotate(45deg);
+    }
+
+    .hamburger.open span:nth-child(2) {
+      opacity: 0;
+      transform: scaleX(0);
+    }
+
+    .hamburger.open span:nth-child(3) {
+      transform: translateY(-7px) rotate(-45deg);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+     MOBILE FULL-SCREEN NAV OVERLAY
+  ═══════════════════════════════════════════════════════ */
+    .mobile-nav-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 600;
+      background: rgba(8, 12, 16, 0.98);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding-top: var(--safe-top);
+      padding-bottom: calc(var(--safe-bottom) + 80px);
+      opacity: 0;
+      transform: translateY(-8px);
+      transition: opacity 0.3s var(--easing), transform 0.3s var(--easing);
+    }
+
+    .mobile-nav-overlay.open {
+      display: flex;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .mob-nav-item {
+      width: 100%;
+      text-align: center;
+      padding: 18px 24px;
+      color: var(--muted2);
+      text-decoration: none;
+      font-family: 'Syne', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      transition: color 0.2s, background 0.2s;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mob-nav-item:hover,
+    .mob-nav-item:active {
+      color: var(--accent);
+      background: rgba(0, 229, 192, 0.04);
+    }
+
+    .mob-nav-divider {
+      width: 40px;
+      height: 1px;
+      background: var(--border);
+      margin: 4px auto;
+    }
+
+    .mob-nav-cta {
+      margin-top: 20px;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      padding: 16px 48px;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-weight: 600;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .mob-nav-cta:active {
+      transform: scale(0.97);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+     BOTTOM NAV BAR (mobile ≤600px)
+  ═══════════════════════════════════════════════════════ */
+    .bottom-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 500;
+      background: rgba(8, 12, 16, 0.96);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-top: 1px solid var(--border);
+      padding-bottom: var(--safe-bottom);
+      grid-template-columns: repeat(4, 1fr);
+      height: calc(56px + var(--safe-bottom));
+    }
+
+    .bn-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      padding: 8px 4px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-family: 'DM Mono', monospace;
+      transition: color 0.2s;
+      cursor: pointer;
+      background: none;
+      border: none;
+      -webkit-tap-highlight-color: transparent;
+      min-height: 44px;
+    }
+
+    .bn-item.active {
+      color: var(--accent);
+    }
+
+    .bn-item svg {
+      transition: transform 0.2s var(--easing);
+    }
+
+    .bn-item.active svg {
+      transform: scale(1.1);
+    }
+
+    .bn-item:active svg {
+      transform: scale(0.9);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+     PAGES
+  ═══════════════════════════════════════════════════════ */
+    .page {
+      display: none;
+      min-height: 100vh;
+    }
+
+    .page.active {
+      display: block;
+      animation: pageFadeIn 0.35s var(--easing) both;
+    }
+
+    @keyframes pageFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════
+     HERO
+  ═══════════════════════════════════════════════════════ */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: calc(var(--nav-h) + 50px) 60px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 70% 40%, rgba(123, 92, 240, 0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 20% 80%, rgba(0, 229, 192, 0.05) 0%, transparent 50%);
+    }
+
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
+      -webkit-mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 780px;
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 229, 192, 0.08);
+      border: 1px solid rgba(0, 229, 192, 0.2);
+      padding: 6px 16px;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 32px;
+      animation: fadeUp 0.8s ease both;
+    }
+
+    .hero-tag::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.4;
+        transform: scale(0.8);
+      }
+    }
+
+    .hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(40px, 7vw, 90px);
+      line-height: 0.95;
+      letter-spacing: -0.02em;
+      margin-bottom: 28px;
+      animation: fadeUp 0.8s 0.1s ease both;
+    }
+
+    .hero h1 .outline {
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(255, 255, 255, 0.2);
+    }
+
+    .hero h1 .accent {
+      color: var(--accent);
+    }
+
+    .hero-sub {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic;
+      font-size: 19px;
+      color: var(--muted2);
+      max-width: 520px;
+      margin-bottom: 48px;
+      animation: fadeUp 0.8s 0.2s ease both;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      animation: fadeUp 0.8s 0.3s ease both;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      padding: 14px 36px;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.25s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary:hover {
+      background: #00ffda;
+      box-shadow: var(--glow);
+      transform: translateY(-2px);
+    }
+
+    .btn-primary:active {
+      transform: scale(0.97);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 14px 36px;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.25s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn-secondary:active {
+      transform: scale(0.97);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+     STATS
+  ═══════════════════════════════════════════════════════ */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      margin: 0 60px;
+      border: 1px solid var(--border);
+      animation: fadeUp 0.8s 0.4s ease both;
+    }
+
+    .stat {
+      background: var(--surface);
+      padding: 32px 30px;
+      text-align: center;
+    }
+
+    .stat-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 42px;
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+     SECTIONS
+  ═══════════════════════════════════════════════════════ */
+    .section {
+      padding: 90px 60px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(28px, 4vw, 50px);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 56px;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+     CHAPTER GRID
+  ═══════════════════════════════════════════════════════ */
+    .chapter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .chapter-card {
+      background: var(--surface);
+      padding: 36px;
+      transition: background 0.3s;
+      position: relative;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .chapter-card:hover {
+      background: var(--surface2);
+    }
+
+    .chapter-card:active {
+      background: var(--surface3);
+    }
+
+    .ch-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 48px;
+      font-weight: 800;
+      color: rgba(0, 229, 192, 0.08);
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+
+    .ch-tag {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid rgba(0, 229, 192, 0.2);
+      padding: 4px 10px;
+      display: inline-block;
+      margin-bottom: 14px;
+    }
+
+    .ch-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+
+    .ch-desc {
+      color: var(--muted2);
+      font-size: 12px;
+      line-height: 1.7;
+      padding-right: 24px;
+    }
+
+    .ch-arrow {
+      position: absolute;
+      bottom: 28px;
+      right: 28px;
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      transition: all 0.25s;
+      font-size: 14px;
+    }
+
+    .chapter-card:hover .ch-arrow {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+     ABOUT PAGE
+  ═══════════════════════════════════════════════════════ */
+    .about-hero {
+      padding: calc(var(--nav-h) + 90px) 60px 80px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+
+    .about-hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(32px, 5vw, 64px);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+
+    .about-hero h1 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+
+    .about-text {
+      color: var(--muted2);
+      line-height: 1.9;
+    }
+
+    .about-text p+p {
+      margin-top: 16px;
+    }
+
+    .info-grid {
+      margin: 0 60px;
+      border: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+    }
+
+    .info-card {
+      background: var(--surface);
+      padding: 40px;
+    }
+
+    .info-card-icon {
+      font-size: 28px;
+      margin-bottom: 16px;
+    }
+
+    .info-card-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      margin-bottom: 12px;
+      color: var(--accent);
+    }
+
+    .info-card-text {
+      color: var(--muted2);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .tips-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .tip-card {
+      background: var(--surface);
+      padding: 36px;
+      transition: background 0.3s;
+    }
+
+    .tip-card:hover {
+      background: var(--surface2);
+    }
+
+    .tip-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 36px;
+      font-weight: 800;
+      color: rgba(0, 229, 192, 0.12);
+      margin-bottom: 12px;
+    }
+
+    .tip-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .tip-text {
+      color: var(--muted2);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+     LEARNING PAGE
+  ═══════════════════════════════════════════════════════ */
+    .learning-hero {
+      padding: calc(var(--nav-h) + 80px) 60px 40px;
+    }
+
+    .learning-hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(36px, 6vw, 78px);
+      font-weight: 800;
+      line-height: 0.95;
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+    }
+
+    .learning-hero p {
+      color: var(--muted2);
+      max-width: 560px;
+      font-family: 'Instrument Serif', serif;
+      font-style: italic;
+      font-size: 18px;
+    }
+
+    /* Sticky filter bar */
+    .filter-bar {
+      position: sticky;
+      top: var(--nav-h);
+      z-index: 100;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 20px 60px;
+      background: rgba(8, 12, 16, 0.95);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      border-top: 1px solid var(--border);
+    }
+
+    .filter-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 8px 18px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+      min-height: 36px;
+    }
+
+    .filter-btn:hover,
+    .filter-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(0, 229, 192, 0.07);
+    }
+
+    .filter-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+     ARTICLES  — SMOOTH ACCORDION
+  ═══════════════════════════════════════════════════════ */
+    .articles-list {
+      margin: 0 60px;
+      border: 1px solid var(--border);
+      margin-bottom: 60px;
+    }
+
+    .article-item {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .article-item:last-child {
+      border-bottom: none;
+    }
+
+    .article-header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 24px 36px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+      transition: background 0.2s;
+      min-height: 44px;
+    }
+
+    .article-header:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .article-header:active {
+      background: rgba(0, 229, 192, 0.03);
+    }
+
+    .article-ch {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--accent);
+      min-width: 60px;
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+
+    .article-title-wrap {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .article-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .article-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--muted);
+      align-items: center;
+    }
+
+    .article-badge {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border: 1px solid;
+      white-space: nowrap;
+    }
+
+    .badge-basic {
+      color: #4ade80;
+      border-color: rgba(74, 222, 128, 0.25);
+    }
+
+    .badge-inter {
+      color: #fbbf24;
+      border-color: rgba(251, 191, 36, 0.25);
+    }
+
+    .badge-adv {
+      color: #f87171;
+      border-color: rgba(248, 113, 113, 0.25);
+    }
+
+    .article-expand {
+      color: var(--muted);
+      font-size: 12px;
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.35s var(--easing), border-color 0.2s, color 0.2s;
+      border-radius: 50%;
+    }
+
+    .article-item.open .article-expand {
+      transform: rotate(90deg);
+      border-color: rgba(0, 229, 192, 0.3);
+      color: var(--accent);
+    }
+
+    /* Smooth accordion */
+    .article-body-wrap {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.4s var(--easing);
+      border-top: 0px solid var(--border);
+    }
+
+    .article-item.open .article-body-wrap {
+      grid-template-rows: 1fr;
+      border-top: 1px solid var(--border);
+    }
+
+    .article-body-inner {
+      overflow: hidden;
+    }
+
+    .article-body {
+      padding: 0 36px 32px;
+    }
+
+    /* Content inside articles */
+    .article-body h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 28px 0 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(0, 229, 192, 0.1);
+    }
+
+    .article-body h4 {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 20px 0 8px;
+    }
+
+    .article-body p {
+      color: var(--muted2);
+      font-size: 13px;
+      line-height: 1.8;
+      margin-bottom: 12px;
+    }
+
+    .article-body ul,
+    .article-body ol {
+      color: var(--muted2);
+      font-size: 13px;
+      line-height: 1.8;
+      margin: 0 0 14px 20px;
+    }
+
+    .article-body li {
+      margin-bottom: 6px;
+    }
+
+    .article-body code {
+      background: rgba(0, 229, 192, 0.07);
+      border: 1px solid rgba(0, 229, 192, 0.15);
+      color: var(--accent);
+      padding: 2px 8px;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      border-radius: 2px;
+    }
+
+    /* Code block with copy button */
+    .code-block {
+      position: relative;
+      margin: 16px 0;
+    }
+
+    .code-block pre {
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid var(--border);
+      padding: 18px 48px 18px 20px;
+      overflow-x: auto;
+      border-left: 3px solid var(--accent);
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: var(--surface3) transparent;
+    }
+
+    .code-block pre::-webkit-scrollbar {
+      height: 3px;
+    }
+
+    .code-block pre::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .code-block pre::-webkit-scrollbar-thumb {
+      background: var(--surface3);
+      border-radius: 2px;
+    }
+
+    .code-block pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      color: #b0c4d4;
+      font-size: 12px;
+      line-height: 1.8;
+      white-space: pre;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 4px 10px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+      border-radius: 2px;
+      min-height: 28px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .copy-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(0, 229, 192, 0.06);
+    }
+
+    .copy-btn:active {
+      transform: scale(0.95);
+    }
+
+    .copy-btn.copied {
+      border-color: #4ade80;
+      color: #4ade80;
+      background: rgba(74, 222, 128, 0.06);
+    }
+
+    .article-body .note {
+      background: rgba(0, 229, 192, 0.06);
+      border-left: 3px solid var(--accent);
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 13px;
+      color: var(--muted2);
+    }
+
+    .article-body .warn {
+      background: rgba(251, 191, 36, 0.05);
+      border-left: 3px solid #fbbf24;
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 13px;
+      color: #fbbf24;
+    }
+
+    .article-body .info {
+      background: rgba(123, 92, 240, 0.06);
+      border-left: 3px solid var(--accent2);
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 13px;
+      color: #a78bfa;
+    }
+
+    /* Scrollable table wrapper */
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin: 16px 0;
+      scrollbar-width: thin;
+      scrollbar-color: var(--surface3) transparent;
+    }
+
+    .table-wrap::-webkit-scrollbar {
+      height: 3px;
+    }
+
+    .table-wrap::-webkit-scrollbar-thumb {
+      background: var(--surface3);
+    }
+
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      min-width: 400px;
+    }
+
+    .article-body th {
+      background: rgba(0, 229, 192, 0.1);
+      color: var(--accent);
+      padding: 10px 14px;
+      text-align: left;
+      border: 1px solid var(--border);
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+
+    .article-body td {
+      padding: 9px 14px;
+      border: 1px solid var(--border);
+      color: var(--muted2);
+      vertical-align: top;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+     FOOTER
+  ═══════════════════════════════════════════════════════ */
+    footer {
+      margin-top: 80px;
+      padding: 48px 60px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 16px;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+    }
+
+    .footer-copy {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .footer-note {
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+      padding: 0 60px 24px;
+      line-height: 1.8;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+     ABOUT ME PAGE
+  ═══════════════════════════════════════════════════════ */
+    .aboutme-hero {
+      padding: calc(var(--nav-h) + 80px) 60px 60px;
+      display: grid;
+      grid-template-columns: 1fr 1.6fr;
+      gap: 80px;
+      align-items: center;
+    }
+
+    .aboutme-photo-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .aboutme-photo {
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--accent);
+      box-shadow: 0 0 40px rgba(0, 229, 192, 0.2);
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 72px;
+      overflow: hidden;
+    }
+
+    .aboutme-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    .aboutme-social {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .social-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted2);
+      padding: 9px 20px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.25s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      -webkit-tap-highlight-color: transparent;
+      min-height: 44px;
+    }
+
+    .social-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .social-btn:active {
+      transform: scale(0.96);
+    }
+
+    .aboutme-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 229, 192, 0.08);
+      border: 1px solid rgba(0, 229, 192, 0.2);
+      padding: 5px 14px;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+
+    .aboutme-name {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(28px, 5vw, 62px);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+    }
+
+    .aboutme-name span {
+      color: var(--accent);
+    }
+
+    .aboutme-desc {
+      color: var(--muted2);
+      font-size: 14px;
+      line-height: 1.9;
+      margin-bottom: 32px;
+    }
+
+    .aboutme-skills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+
+    .skill-tag {
+      background: rgba(0, 229, 192, 0.06);
+      border: 1px solid rgba(0, 229, 192, 0.15);
+      color: var(--accent);
+      padding: 5px 14px;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .journey-section {
+      padding: 0 60px 80px;
+    }
+
+    .resources-section {
+      padding: 0 60px 80px;
+    }
+
+    .journey-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .journey-card {
+      background: var(--surface);
+      padding: 36px;
+      transition: background 0.3s;
+    }
+
+    .journey-card:hover {
+      background: var(--surface2);
+    }
+
+    .journey-step {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 14px;
+    }
+
+    .journey-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .journey-text {
+      color: var(--muted2);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .resources-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .resource-card {
+      background: var(--surface);
+      padding: 32px;
+      transition: background 0.3s;
+      text-decoration: none;
+      display: block;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .resource-card:hover {
+      background: var(--surface2);
+    }
+
+    .resource-card:active {
+      background: var(--surface3);
+    }
+
+    .resource-icon {
+      font-size: 28px;
+      margin-bottom: 14px;
+    }
+
+    .resource-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .resource-desc {
+      color: var(--muted2);
+      font-size: 12px;
+      line-height: 1.7;
+      margin-bottom: 14px;
+    }
+
+    .resource-link {
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+     BACK TO TOP
+  ═══════════════════════════════════════════════════════ */
+    #back-top {
+      position: fixed;
+      right: 20px;
+      bottom: 80px;
+      z-index: 400;
+      width: 44px;
+      height: 44px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s, transform 0.3s, bottom 0.3s;
+      transform: translateY(10px);
+      font-size: 16px;
+      font-family: monospace;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #back-top.visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    #back-top:hover {
+      background: var(--surface3);
+      border-color: var(--accent);
+    }
+
+    #back-top:active {
+      transform: scale(0.92);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+     UTILITIES & ANIMATIONS
+  ═══════════════════════════════════════════════════════ */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(24px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--surface2);
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+     RESPONSIVE — TABLET (≤ 1024px)
+  ═══════════════════════════════════════════════════════ */
+    @media (max-width:1024px) {
+      nav {
+        padding: 0 32px;
+      }
+
+      .hero {
+        padding: calc(var(--nav-h) + 40px) 32px 60px;
+      }
+
+      .stats {
+        margin: 0 32px;
+      }
+
+      .section {
+        padding: 70px 32px;
+      }
+
+      .about-hero {
+        padding: calc(var(--nav-h) + 60px) 32px 60px;
+        gap: 48px;
+      }
+
+      .info-grid {
+        margin: 0 32px;
+      }
+
+      .learning-hero {
+        padding: calc(var(--nav-h) + 60px) 32px 32px;
+      }
+
+      .filter-bar {
+        padding: 16px 32px;
+      }
+
+      .articles-list {
+        margin: 0 32px 60px;
+      }
+
+      .aboutme-hero {
+        padding: calc(var(--nav-h) + 60px) 32px 48px;
+        gap: 48px;
+      }
+
+      .journey-section {
+        padding: 0 32px 60px;
+      }
+
+      .resources-section {
+        padding: 0 32px 60px;
+      }
+
+      footer {
+        padding: 40px 32px;
+      }
+
+      .footer-note {
+        padding: 0 32px 20px;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════
+     RESPONSIVE — TABLET PORTRAIT (≤ 900px)
+     Hamburger menu replaces desktop nav
+  ═══════════════════════════════════════════════════════ */
+    @media (max-width:900px) {
+      nav {
+        padding: 0 20px;
+      }
+
+      .nav-links,
+      .nav-cta {
+        display: none;
+      }
+
+      .hamburger {
+        display: flex;
+      }
+
+      .hero {
+        padding: calc(var(--nav-h) + 30px) 20px 48px;
+      }
+
+      .stats {
+        margin: 0 20px;
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .about-hero {
+        grid-template-columns: 1fr;
+        padding: calc(var(--nav-h) + 40px) 20px 48px;
+        gap: 32px;
+      }
+
+      .info-grid {
+        margin: 0 20px;
+        grid-template-columns: 1fr;
+      }
+
+      .tips-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .learning-hero {
+        padding: calc(var(--nav-h) + 40px) 20px 28px;
+      }
+
+      .filter-bar {
+        padding: 14px 20px;
+        top: var(--nav-h);
+      }
+
+      .articles-list {
+        margin: 0 20px 50px;
+      }
+
+      .article-header {
+        padding: 18px 20px;
+        gap: 12px;
+      }
+
+      .article-body {
+        padding: 0 20px 24px;
+      }
+
+      .aboutme-hero {
+        grid-template-columns: 1fr;
+        padding: calc(var(--nav-h) + 40px) 20px 40px;
+        gap: 32px;
+      }
+
+      .journey-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .journey-section {
+        padding: 0 20px 50px;
+      }
+
+      .resources-section {
+        padding: 0 20px 50px;
+      }
+
+      footer {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+        padding: 32px 20px;
+        margin-top: 40px;
+      }
+
+      .footer-note {
+        padding: 0 20px 16px;
+      }
+
+      .section {
+        padding: 56px 20px;
+      }
+
+      .section-title {
+        margin-bottom: 36px;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════
+     RESPONSIVE — MOBILE (≤ 600px)
+     Bottom nav bar, optimized for one-hand use
+  ═══════════════════════════════════════════════════════ */
+    @media (max-width:600px) {
+      :root {
+        --bot-nav-h: calc(56px + var(--safe-bottom));
+      }
+
+      /* Show bottom nav, hide hamburger */
+      .bottom-nav {
+        display: grid;
+      }
+
+      .hamburger {
+        display: none;
+      }
+
+      /* Add safe-area padding to nav */
+      nav {
+        padding-left: calc(16px + var(--safe-left));
+        padding-right: calc(16px + var(--safe-right));
+      }
+
+      /* Back-to-top sits above bottom nav */
+      #back-top {
+        bottom: calc(var(--bot-nav-h) + 16px);
+        right: 16px;
+      }
+
+      /* Hero */
+      .hero {
+        padding: calc(var(--nav-h) + 24px) calc(16px + var(--safe-left)) 40px calc(16px + var(--safe-right));
+        min-height: auto;
+        align-items: flex-start;
+      }
+
+      .hero h1 {
+        font-size: clamp(34px, 9.5vw, 54px);
+      }
+
+      .hero-sub {
+        font-size: 15px;
+        margin-bottom: 28px;
+      }
+
+      .hero-tag {
+        font-size: 10px;
+        padding: 5px 12px;
+        margin-bottom: 24px;
+      }
+
+      .btn-primary,
+      .btn-secondary {
+        padding: 13px 20px;
+        font-size: 11px;
+        width: 100%;
+        justify-content: center;
+      }
+
+      .hero-actions {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      /* Stats */
+      .stats {
+        margin: 0 16px;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .stat {
+        padding: 20px 14px;
+      }
+
+      .stat-num {
+        font-size: 30px;
+      }
+
+      .stat-label {
+        font-size: 9px;
+      }
+
+      /* Sections */
+      .section {
+        padding: 44px 16px;
+      }
+
+      .section-title {
+        font-size: clamp(24px, 7vw, 38px);
+        margin-bottom: 28px;
+      }
+
+      .section-label {
+        font-size: 10px;
+      }
+
+      /* Chapter grid */
+      .chapter-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .chapter-card {
+        padding: 22px 20px;
+      }
+
+      .ch-num {
+        font-size: 36px;
+      }
+
+      /* About */
+      .about-hero {
+        padding: calc(var(--nav-h) + 20px) 16px 36px;
+        gap: 28px;
+      }
+
+      .info-grid {
+        margin: 0 16px;
+      }
+
+      .info-card {
+        padding: 24px 20px;
+      }
+
+      .tip-card {
+        padding: 22px 20px;
+      }
+
+      /* Learning */
+      .learning-hero {
+        padding: calc(var(--nav-h) + 20px) calc(16px + var(--safe-left)) 24px calc(16px + var(--safe-right));
+      }
+
+      .learning-hero h1 {
+        font-size: clamp(30px, 8.5vw, 48px);
+      }
+
+      .learning-hero p {
+        font-size: 14px;
+      }
+
+      .filter-bar {
+        padding: 12px 16px;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        gap: 6px;
+      }
+
+      .filter-bar::-webkit-scrollbar {
+        display: none;
+      }
+
+      .filter-btn {
+        padding: 7px 14px;
+        font-size: 10px;
+        min-height: 34px;
+      }
+
+      .articles-list {
+        margin: 0 16px 24px;
+      }
+
+      .article-header {
+        padding: 14px 16px;
+        gap: 10px;
+        flex-wrap: nowrap;
+      }
+
+      .article-ch {
+        font-size: 11px;
+        min-width: 44px;
+      }
+
+      .article-title {
+        font-size: 14px;
+        line-height: 1.3;
+      }
+
+      .article-meta {
+        font-size: 10px;
+        gap: 5px;
+      }
+
+      /* hide dot separator on mobile */
+      .article-meta .dot {
+        display: none;
+      }
+
+      .article-expand {
+        width: 24px;
+        height: 24px;
+        font-size: 10px;
+      }
+
+      .article-body {
+        padding: 4px 16px 20px;
+      }
+
+      .article-body h3 {
+        font-size: 14px;
+        margin: 22px 0 10px;
+      }
+
+      .article-body h4 {
+        font-size: 13px;
+      }
+
+      .article-body p,
+      .article-body li {
+        font-size: 12.5px;
+      }
+
+      .code-block pre {
+        padding: 12px 44px 12px 14px;
+        font-size: 11.5px;
+      }
+
+      .code-block pre code {
+        font-size: 11.5px;
+      }
+
+      .copy-btn {
+        top: 6px;
+        right: 6px;
+        padding: 3px 8px;
+        font-size: 9px;
+      }
+
+      /* About me */
+      .aboutme-hero {
+        padding: calc(var(--nav-h) + 20px) 16px 36px;
+        gap: 28px;
+      }
+
+      .aboutme-photo {
+        width: 150px;
+        height: 150px;
+        font-size: 56px;
+      }
+
+      .aboutme-name {
+        font-size: clamp(24px, 6.5vw, 40px);
+      }
+
+      .aboutme-desc {
+        font-size: 13px;
+      }
+
+      .social-btn {
+        padding: 10px 16px;
+        font-size: 10px;
+      }
+
+      .journey-section {
+        padding: 0 16px 44px;
+      }
+
+      .resources-section {
+        padding: 0 16px 44px;
+      }
+
+      .journey-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .journey-card {
+        padding: 22px 20px;
+      }
+
+      .resource-card {
+        padding: 22px 20px;
+      }
+
+      .resources-grid {
+        grid-template-columns: 1fr;
+      }
+
+      footer {
+        padding: 28px 16px;
+        margin-top: 32px;
+      }
+
+      .footer-note {
+        padding: 0 16px 16px;
+        font-size: 10px;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════
+     SMALL PHONES (≤ 380px)
+  ═══════════════════════════════════════════════════════ */
+    @media (max-width:380px) {
+      .hero h1 {
+        font-size: 32px;
+      }
+
+      .stat-num {
+        font-size: 26px;
+      }
+
+      .article-ch {
+        min-width: 38px;
+        font-size: 10px;
+      }
+
+      .article-title {
+        font-size: 13px;
+      }
+
+      .code-block pre code {
+        font-size: 11px;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════
+     LANDSCAPE MOBILE
+  ═══════════════════════════════════════════════════════ */
+    @media (max-width:900px) and (orientation: landscape) {
+      .hero {
+        min-height: auto;
+        padding-top: calc(var(--nav-h) + 24px);
+      }
+
+      .about-hero {
+        padding-top: calc(var(--nav-h) + 24px);
+      }
+
+      .learning-hero {
+        padding-top: calc(var(--nav-h) + 20px);
+      }
+
+      .aboutme-hero {
+        padding-top: calc(var(--nav-h) + 20px);
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════
+     FOCUS STYLES (accessibility)
+  ═══════════════════════════════════════════════════════ */
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Progress bar -->
+  <div id="progress-bar"></div>
+
+  <!-- Custom cursor (desktop) -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- Back to top -->
+  <button id="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top">↑</button>
+
+  <!-- Mobile full-screen overlay nav (tablet) -->
+  <div class="mobile-nav-overlay" id="mobileNav" role="dialog" aria-modal="true" aria-label="Navigation">
+    <a class="mob-nav-item" href="#" onclick="showPage('home');closeMobileNav();return false;">Home</a>
+    <div class="mob-nav-divider"></div>
+    <a class="mob-nav-item" href="#" onclick="showPage('about');closeMobileNav();return false;">About</a>
+    <div class="mob-nav-divider"></div>
+    <a class="mob-nav-item" href="#" onclick="showPage('learning');closeMobileNav();return false;">Chapters</a>
+    <div class="mob-nav-divider"></div>
+    <a class="mob-nav-item" href="#" onclick="showPage('aboutme');closeMobileNav();return false;">About Me</a>
+    <button class="mob-nav-cta" onclick="showPage('learning');closeMobileNav()">Study Now →</button>
+  </div>
+
+  <!-- Desktop / tablet nav -->
+  <nav>
+    <a href="#" class="nav-logo" onclick="showPage('home');return false;">RH<span>CSA</span></a>
+    <ul class="nav-links">
+      <li><a href="#" onclick="showPage('home');return false;">Home</a></li>
+      <li><a href="#" onclick="showPage('about');return false;">About</a></li>
+      <li><a href="#" onclick="showPage('learning');return false;">Chapters</a></li>
+      <li><a href="#" onclick="showPage('aboutme');return false;">About Me</a></li>
+    </ul>
+    <button class="nav-cta" onclick="showPage('learning')">Study Now</button>
+    <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- Bottom nav bar (mobile ≤600px) -->
+  <nav class="bottom-nav" aria-label="Bottom navigation">
+    <button class="bn-item active" id="bn-home" onclick="showPage('home')" aria-label="Home">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
+      </svg>
+      Home
+    </button>
+    <button class="bn-item" id="bn-about" onclick="showPage('about')" aria-label="About">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+      About
+    </button>
+    <button class="bn-item" id="bn-learning" onclick="showPage('learning')" aria-label="Chapters">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
+        <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
+      </svg>
+      Chapters
+    </button>
+    <button class="bn-item" id="bn-aboutme" onclick="showPage('aboutme')" aria-label="About Me">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+      </svg>
+      Me
+    </button>
+  </nav>
+
+  <!-- ══════════════════════ HOME ══════════════════════ -->
+  <div id="page-home" class="page active">
+    <section class="hero">
+      <div class="hero-bg"></div>
+      <div class="hero-grid"></div>
+      <div class="hero-content">
+        <div class="hero-tag">Linux Administration Study Notes</div>
+        <h1>Master Linux.<br><span class="outline">Command by</span><br><span class="accent">Command.</span></h1>
+        <p class="hero-sub">Personal class notes covering core Linux administration concepts — structured, searchable,
+          and command-focused.</p>
+        <div class="hero-actions">
+          <a href="#" class="btn-primary" onclick="showPage('learning');return false;">Browse Chapters <svg width="14"
+              height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg></a>
+          <a href="#" class="btn-secondary" onclick="showPage('about');return false;">About This Guide</a>
+        </div>
+      </div>
+    </section>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-num" data-target="16">0</div>
+        <div class="stat-label">Chapters</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" data-target="200">0</div>
+        <div class="stat-label">Commands</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" data-target="25">0</div>
+        <div class="stat-label">Classes</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" data-target="11">0</div>
+        <div class="stat-label">Topics</div>
+      </div>
+    </div>
+
+    <section class="section">
+      <div class="section-label">// Topics Covered</div>
+      <div class="section-title">Everything in<br>one place.</div>
+      <div class="chapter-grid">
+        <div class="chapter-card" onclick="showPage('learning')">
+          <div class="ch-num">01</div>
+          <div class="ch-tag">Essentials</div>
+          <div class="ch-title">Vim & SSH</div>
+          <div class="ch-desc">Shell basics, remote connections, key-based authentication, ssh-agent setup.</div>
+          <div class="ch-arrow">→</div>
+        </div>
+        <div class="chapter-card" onclick="showPage('learning')">
+          <div class="ch-num">02</div>
+          <div class="ch-tag">Files</div>
+          <div class="ch-title">File Management</div>
+          <div class="ch-desc">Create, copy, move, delete, links, wildcards, grep, regex anchors.</div>
+          <div class="ch-arrow">→</div>
+        </div>
+        <div class="chapter-card" onclick="showPage('learning')">
+          <div class="ch-num">03</div>
+          <div class="ch-tag">Admin</div>
+          <div class="ch-title">Users & Groups</div>
+          <div class="ch-desc">useradd, usermod, groupmod, sudo, su, /etc/shadow, password policy.</div>
+          <div class="ch-arrow">→</div>
+        </div>
+        <div class="chapter-card" onclick="showPage('learning')">
+          <div class="ch-num">04</div>
+          <div class="ch-tag">Security</div>
+          <div class="ch-title">File Permissions (DAC)</div>
+          <div class="ch-desc">chmod, chown, SUID, SGID, sticky bit, umask — octal and symbolic.</div>
+          <div class="ch-arrow">→</div>
+        </div>
+        <div class="chapter-card" onclick="showPage('learning')">
+          <div class="ch-num">06</div>
+          <div class="ch-tag">System</div>
+          <div class="ch-title">Processes & Scheduling</div>
+          <div class="ch-desc">ps, top, kill, signals, nice, renice, crontab, at, tuned-adm.</div>
+          <div class="ch-arrow">→</div>
+        </div>
+        <div class="chapter-card" onclick="showPage('learning')">
+          <div class="ch-num">10</div>
+          <div class="ch-tag">Storage</div>
+          <div class="ch-title">LVM</div>
+          <div class="ch-desc">Physical volumes, volume groups, logical volumes — extend, reduce, delete.</div>
+          <div class="ch-arrow">→</div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="footer-logo">RHCSA STUDY GUIDE</div>
+      <div class="footer-copy">Personal Class Notes © 2025</div>
+    </footer>
+    <p class="footer-note">This site contains personal study notes based on publicly available Linux documentation and
+      classroom learning.<br>Red Hat and RHCSA are trademarks of Red Hat, Inc. This site is not affiliated with or
+      endorsed by Red Hat.</p>
+  </div>
+
+  <!-- ══════════════════════ ABOUT ══════════════════════ -->
+  <div id="page-about" class="page">
+    <div class="about-hero">
+      <div>
+        <div class="section-label">// About This Guide</div>
+        <h1>Class notes,<br>organised for<br><em>real learning.</em></h1>
+      </div>
+      <div class="about-text">
+        <p>This is a personal study reference built from classroom notes covering core Linux system administration
+          topics aligned with the RHCSA curriculum.</p>
+        <p>Every chapter covers commands, syntax, practical examples, and important concepts — no fluff, no filler.</p>
+        <p>All content is based on publicly available Linux documentation. This site is intended purely as a personal
+          learning reference.</p>
+      </div>
+    </div>
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-card-icon">📘</div>
+        <div class="info-card-title">What is RHCSA?</div>
+        <div class="info-card-text">Red Hat Certified System Administrator is a performance-based certification testing
+          real Linux administration skills. Official details and objectives are available at redhat.com.</div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-icon">⚙️</div>
+        <div class="info-card-title">What's Covered</div>
+        <div class="info-card-text">Shell, SSH, file management, users, permissions, storage, LVM, services, boot
+          process, SELinux, containers, networking and more — 16 chapters of practical commands.</div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-icon">🔗</div>
+        <div class="info-card-title">Official Resources</div>
+        <div class="info-card-text">For official curriculum, exam objectives and preparation materials always refer to
+          redhat.com/en/services/certification/rhcsa — the authoritative source.</div>
+      </div>
+    </div>
+    <section class="section">
+      <div class="section-label">// Study Approach</div>
+      <div class="section-title">How to use<br>these notes.</div>
+      <div class="tips-grid">
+        <div class="tip-card">
+          <div class="tip-num">01</div>
+          <div class="tip-title">Practice every command</div>
+          <div class="tip-text">Reading is not enough. Spin up a RHEL or CentOS VM and type every command in these
+            notes. Muscle memory is essential in Linux administration.</div>
+        </div>
+        <div class="tip-card">
+          <div class="tip-num">02</div>
+          <div class="tip-title">Understand, don't memorise</div>
+          <div class="tip-text">Focus on understanding what each command does and why. Use <code>man commandname</code>
+            and <code>command --help</code> to explore options you're unsure about.</div>
+        </div>
+        <div class="tip-card">
+          <div class="tip-num">03</div>
+          <div class="tip-title">Always verify your work</div>
+          <div class="tip-text">After any configuration change, verify it worked. Use <code>systemctl status</code>,
+            <code>df -h</code>, <code>mount -a</code>, or <code>lsblk</code> to confirm changes took effect.
+          </div>
+        </div>
+        <div class="tip-card">
+          <div class="tip-num">04</div>
+          <div class="tip-title">Build a lab environment</div>
+          <div class="tip-text">Use VirtualBox or VMware to create a local RHEL 9 lab. Practice storage tasks, user
+            management, and service configuration in an environment where mistakes are safe.</div>
+        </div>
+      </div>
+    </section>
+    <footer>
+      <div class="footer-logo">RHCSA STUDY GUIDE</div>
+      <div class="footer-copy">Personal Class Notes © 2025</div>
+    </footer>
+    <p class="footer-note">Red Hat and RHCSA are trademarks of Red Hat, Inc. This site is not affiliated with or
+      endorsed by Red Hat.<br>Content is based on personal classroom notes and publicly available Linux documentation
+      only.</p>
+  </div>
+
+  <!-- ══════════════════════ LEARNING ══════════════════════ -->
+  <div id="page-learning" class="page">
+    <div class="learning-hero">
+      <div class="section-label">// All Chapters</div>
+      <h1>Every class.<br>Every command.</h1>
+      <p>Tap any chapter to expand full notes. Filter by topic below.</p>
+    </div>
+
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="setFilter(this,'all')">All</button>
+      <button class="filter-btn" onclick="setFilter(this,'essentials')">Essentials</button>
+      <button class="filter-btn" onclick="setFilter(this,'storage')">Storage</button>
+      <button class="filter-btn" onclick="setFilter(this,'security')">Security</button>
+      <button class="filter-btn" onclick="setFilter(this,'services')">Services</button>
+      <button class="filter-btn" onclick="setFilter(this,'containers')">Containers</button>
+      <button class="filter-btn" onclick="setFilter(this,'networking')">Networking</button>
+    </div>
+
+    <div class="articles-list">
+
+      <!-- CH-1 -->
+      <div class="article-item" data-topic="essentials">
+        <div class="article-header" onclick="toggleArticle(this)">
+          <div class="article-ch">CH-1</div>
+          <div class="article-title-wrap">
+            <div class="article-title">Vim & SSH</div>
+            <div class="article-meta"><span>Shell basics, remote connections, key auth</span><span
+                class="dot">·</span><span class="article-badge badge-basic">Beginner</span></div>
+          </div>
+          <div class="article-expand">▶</div>
+        </div>
+        <div class="article-body-wrap">
+          <div class="article-body-inner">
+            <div class="article-body">
+              <h3>Shell Basics</h3>
+              <ul>
+                <li><strong>Bash</strong> = Bourne Again Shell</li>
+                <li><code>~</code> = home directory | <code>root</code> = administrator</li>
+                <li>Command syntax: <code>command [option/argument] [target/path]</code></li>
+              </ul>
+              <h4>Getting Help</h4>
+              <div class="code-block">
+                <pre><code>command --help        # Show all available options
+man command           # Display the manual page</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘
+                  Copy</button>
+              </div>
+              <h3>Essential Commands</h3>
+              <div class="code-block">
+                <pre><code>ls              # List directory contents
+ls -l           # Long listing format
+ls -a           # Include hidden files
+ls -t           # Sort by modification time (newest first)
+touch file      # Create blank file
+mkdir dir       # Create blank directory
+rm file         # Remove file
+rmdir dir       # Remove blank (empty) directory only
+rm -rf dir      # Force remove file or directory — use carefully
+cat file        # Read file content
+head file       # First 10 lines  |  head -n 5 file = first 5
+tail file       # Last 10 lines   |  tail -f file = real-time follow
+more file       # Gradually read whole file
+echo "text"     # Print text or redirect into file</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘
+                  Copy</button>
+              </div>
+              <h3>SSH — Secure Shell</h3>
+              <div class="code-block">
+                <pre><code>ssh username@hostname_or_ip</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘
+                  Copy</button>
+              </div>
+              <h4>Key-Based Authentication</h4>
+              <div class="code-block">
+                <pre><code>ssh-keygen                              # Generate key pair
+ssh-copy-id user@remote_hostname        # Copy public key to remote
+ssh user@remote_hostname                # Login without password</code></pre><button class="copy-btn"
+                  onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h4>SSH-Agent (Cache passphrase)</h4>
+              <div class="code-block">
+                <pre><code>eval $(ssh-agent)               # Start agent background process
+ssh-add .ssh/private_key_name   # Register key with agent
+ssh user@host                   # Connect without passphrase prompt</code></pre><button class="copy-btn"
+                  onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h4>Non-Default Key</h4>
+              <div class="code-block">
+                <pre><code>ssh-keygen -f .ssh/mykey
+ssh-copy-id -i .ssh/mykey.pub user@hostname
+ssh -i .ssh/mykey user@hostname</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h3>echo — Print & Write Text</h3>
+              <div class="code-block">
+                <pre><code>echo Hello                      # Print text to terminal
+echo "Hello Linux" > file.txt   # Write to file (overwrites)
+echo "New line" >> file.txt     # Append to file (keeps existing)</code></pre><button class="copy-btn"
+                  onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h3>Vim Editor — Essential for Administration</h3>
+              <p>Vim is used to edit configuration files, scripts, and system settings. It has three modes:</p>
+              <div class="table-wrap">
+                <table>
+                  <tr>
+                    <th>Mode</th>
+                    <th>Purpose</th>
+                    <th>How to Enter</th>
+                  </tr>
+                  <tr>
+                    <td>Normal</td>
+                    <td>Navigation and commands</td>
+                    <td>Default / press Esc</td>
+                  </tr>
+                  <tr>
+                    <td>Insert</td>
+                    <td>Type and edit text</td>
+                    <td>Press <code>i</code></td>
+                  </tr>
+                  <tr>
+                    <td>Command</td>
+                    <td>Save, quit, search</td>
+                    <td>Press <code>:</code></td>
+                  </tr>
+                </table>
+              </div>
+              <div class="code-block">
+                <pre><code>vim filename    # Open file in vim</code></pre><button class="copy-btn"
+                  onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h4>Essential Vim Commands</h4>
+              <div class="table-wrap">
+                <table>
+                  <tr>
+                    <th>Action</th>
+                    <th>Command</th>
+                  </tr>
+                  <tr>
+                    <td>Enter Insert Mode</td>
+                    <td><code>i</code></td>
+                  </tr>
+                  <tr>
+                    <td>Save</td>
+                    <td><code>:w</code></td>
+                  </tr>
+                  <tr>
+                    <td>Quit</td>
+                    <td><code>:q</code></td>
+                  </tr>
+                  <tr>
+                    <td>Save &amp; Quit</td>
+                    <td><code>:wq</code></td>
+                  </tr>
+                  <tr>
+                    <td>Force Quit (no save)</td>
+                    <td><code>:q!</code></td>
+                  </tr>
+                  <tr>
+                    <td>Delete Line</td>
+                    <td><code>dd</code></td>
+                  </tr>
+                  <tr>
+                    <td>Copy Line</td>
+                    <td><code>yy</code></td>
+                  </tr>
+                  <tr>
+                    <td>Paste</td>
+                    <td><code>p</code></td>
+                  </tr>
+                  <tr>
+                    <td>Search</td>
+                    <td><code>/word</code></td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CH-2 -->
+      <div class="article-item" data-topic="essentials">
+        <div class="article-header" onclick="toggleArticle(this)">
+          <div class="article-ch">CH-2</div>
+          <div class="article-title-wrap">
+            <div class="article-title">Manage Files from the Command Line</div>
+            <div class="article-meta"><span>cp, mv, rm, ln, grep, wildcards</span><span class="dot">·</span><span
+                class="article-badge badge-basic">Beginner</span></div>
+          </div>
+          <div class="article-expand">▶</div>
+        </div>
+        <div class="article-body-wrap">
+          <div class="article-body-inner">
+            <div class="article-body">
+              <h3>Linux Filesystem Hierarchy</h3>
+              <div class="table-wrap">
+                <table>
+                  <tr>
+                    <th>Directory</th>
+                    <th>Purpose</th>
+                  </tr>
+                  <tr>
+                    <td><code>/boot</code></td>
+                    <td>Bootloader files and kernel (vmlinuz)</td>
+                  </tr>
+                  <tr>
+                    <td><code>/dev</code></td>
+                    <td>Device files (disk, CPU, keyboard)</td>
+                  </tr>
+                  <tr>
+                    <td><code>/home</code></td>
+                    <td>Home directories for regular users</td>
+                  </tr>
+                  <tr>
+                    <td><code>/root</code></td>
+                    <td>Home directory of root user</td>
+                  </tr>
+                  <tr>
+                    <td><code>/etc</code></td>
+                    <td>Configuration files</td>
+                  </tr>
+                  <tr>
+                    <td><code>/tmp</code></td>
+                    <td>Temporary files (world-writable)</td>
+                  </tr>
+                  <tr>
+                    <td><code>/usr/bin</code></td>
+                    <td>User command binaries</td>
+                  </tr>
+                  <tr>
+                    <td><code>/usr/sbin</code></td>
+                    <td>System administration binaries</td>
+                  </tr>
+                  <tr>
+                    <td><code>/var</code></td>
+                    <td>Variable data — logs, spool, cache</td>
+                  </tr>
+                </table>
+              </div>
+              <h3>Navigation</h3>
+              <div class="code-block">
+                <pre><code>cd ..          # Move to parent directory
+cd ~           # Move to home directory
+cd /etc        # Move to absolute path
+pwd            # Print current working directory</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘
+                  Copy</button>
+              </div>
+              <h3>File Operations</h3>
+              <div class="code-block">
+                <pre><code>mkdir dir1                  # Create directory
+mkdir -p dir1/dir2/dir3     # Create full nested path
+touch filename              # Create or update file
+
+cp source dest              # Copy file
+cp -r source_dir dest_dir   # Copy directory (must use -r)
+
+mv file /tmp/               # Move file
+mv old.txt new.txt          # Rename file
+
+rm file1                    # Delete file
+rm -r dir1                  # Delete directory
+rm -rf dir1                 # Force delete — no confirmation
+rmdir dir1                  # Remove empty directory only</code></pre><button class="copy-btn"
+                  onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h3>Links</h3>
+              <div class="table-wrap">
+                <table>
+                  <tr>
+                    <th>Feature</th>
+                    <th>Soft Link (Symbolic)</th>
+                    <th>Hard Link</th>
+                  </tr>
+                  <tr>
+                    <td>Command</td>
+                    <td><code>ln -s target linkname</code></td>
+                    <td><code>ln target linkname</code></td>
+                  </tr>
+                  <tr>
+                    <td>Concept</td>
+                    <td>Pointer to a path</td>
+                    <td>Mirror — same inode</td>
+                  </tr>
+                  <tr>
+                    <td>Original deleted</td>
+                    <td>Link breaks</td>
+                    <td>Data remains safe</td>
+                  </tr>
+                  <tr>
+                    <td>Cross partition</td>
+                    <td>Yes</td>
+                    <td>No</td>
+                  </tr>
+                </table>
+              </div>
+              <h3>grep</h3>
+              <div class="code-block">
+                <pre><code>grep "term" file          # Basic search
+grep -i "term" file       # Case insensitive
+grep -v "term" file       # Invert match
+grep -r "term" folder/    # Recursive
+grep -w "word" file       # Whole word only
+grep "^root" /etc/passwd  # Lines starting with root
+grep "bash$" /etc/passwd  # Lines ending with bash
+
+grep "error" logfile | sort | head    # Filter → sort → top 10</code></pre><button class="copy-btn"
+                  onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CH-3 -->
+      <div class="article-item" data-topic="essentials">
+        <div class="article-header" onclick="toggleArticle(this)">
+          <div class="article-ch">CH-3</div>
+          <div class="article-title-wrap">
+            <div class="article-title">Users & Groups</div>
+            <div class="article-meta"><span>useradd, usermod, sudo, /etc/shadow, chage</span><span
+                class="dot">·</span><span class="article-badge badge-inter">Intermediate</span></div>
+          </div>
+          <div class="article-expand">▶</div>
+        </div>
+        <div class="article-body-wrap">
+          <div class="article-body-inner">
+            <div class="article-body">
+              <h3>User Types</h3>
+              <div class="table-wrap">
+                <table>
+                  <tr>
+                    <th>Type</th>
+                    <th>UID Range</th>
+                    <th>Description</th>
+                  </tr>
+                  <tr>
+                    <td>Superuser (root)</td>
+                    <td>0</td>
+                    <td>Full system control</td>
+                  </tr>
+                  <tr>
+                    <td>System User</td>
+                    <td>1–999</td>
+                    <td>Used by services/daemons</td>
+                  </tr>
+                  <tr>
+                    <td>Regular User</td>
+                    <td>1000–60000</td>
+                    <td>Normal login users</td>
+                  </tr>
+                </table>
+              </div>
+              <h3>Create & Modify Users</h3>
+              <div class="code-block">
+                <pre><code>useradd username       # Create new user
+passwd username        # Set password
+
+usermod -l newname oldname           # Rename
+usermod -aG groupname username       # Add secondary group
+usermod -d /new/home -m username     # Change + move home
+usermod -s /bin/bash username        # Change shell
+usermod -L username                  # Lock account
+usermod -U username                  # Unlock account
+usermod -e YYYY-MM-DD username       # Set expiry date</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘
+                  Copy</button>
+              </div>
+              <div class="warn">⚠️ Always use <code>-a</code> with <code>-G</code>. Without <code>-a</code>, all
+                existing group memberships are overwritten.</div>
+              <h3>SUDO</h3>
+              <div class="code-block">
+                <pre><code>visudo    # Edit sudoers safely
+
+username ALL=(ALL) ALL           # Grant sudo to user
+%groupname ALL=(ALL) ALL         # Grant sudo to group
+username ALL=(ALL) NOPASSWD:ALL  # Skip password prompt</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘
+                  Copy</button>
+              </div>
+              <h3>Switch Users</h3>
+              <div class="code-block">
+                <pre><code>su username       # Switch (no env load)
+su - username     # Switch with full environment
+sudo -i           # Switch to root using your own password</code></pre><button class="copy-btn"
+                  onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h3>/etc/shadow — Password Storage</h3>
+              <div class="table-wrap">
+                <table>
+                  <tr>
+                    <th>Field</th>
+                    <th>Meaning</th>
+                  </tr>
+                  <tr>
+                    <td>Encrypted Password</td>
+                    <td>Hashed password value</td>
+                  </tr>
+                  <tr>
+                    <td>Last Password Change</td>
+                    <td>Days since Jan 1, 1970</td>
+                  </tr>
+                  <tr>
+                    <td>Minimum Age</td>
+                    <td>Days before password can be changed</td>
+                  </tr>
+                  <tr>
+                    <td>Maximum Age</td>
+                    <td>Password validity duration</td>
+                  </tr>
+                  <tr>
+                    <td>Warning Days</td>
+                    <td>Days before expiry to warn user</td>
+                  </tr>
+                </table>
+              </div>
+              <h3>Password Policy</h3>
+              <div class="code-block">
+                <pre><code>chage username       # Interactive policy editor
+chage -l username    # List current policy
+chage -d 0 username  # Force password change at next login</code></pre><button class="copy-btn"
+                  onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <div class="note">💡 Always verify changes using <code>id username</code> and
+                <code>chage -l username</code> after modifications.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CH-4 -->
+      <div class="article-item" data-topic="security">
+        <div class="article-header" onclick="toggleArticle(this)">
+          <div class="article-ch">CH-4</div>
+          <div class="article-title-wrap">
+            <div class="article-title">File Access Control — DAC</div>
+            <div class="article-meta"><span>chmod, chown, SUID, SGID, sticky bit, umask</span><span
+                class="dot">·</span><span class="article-badge badge-inter">Intermediate</span></div>
+          </div>
+          <div class="article-expand">▶</div>
+        </div>
+        <div class="article-body-wrap">
+          <div class="article-body-inner">
+            <div class="article-body">
+              <h3>Permission Meanings</h3>
+              <div class="table-wrap">
+                <table>
+                  <tr>
+                    <th>Permission</th>
+                    <th>On a File</th>
+                    <th>On a Directory</th>
+                  </tr>
+                  <tr>
+                    <td>r (read)</td>
+                    <td>View file content</td>
+                    <td>List directory contents (ls)</td>
+                  </tr>
+                  <tr>
+                    <td>w (write)</td>
+                    <td>Modify file content</td>
+                    <td>Create/delete files inside</td>
+                  </tr>
+                  <tr>
+                    <td>x (execute)</td>
+                    <td>Run as program/script</td>
+                    <td>Enter directory (cd into it)</td>
+                  </tr>
+                </table>
+              </div>
+              <h3>Symbolic Method</h3>
+              <div class="code-block">
+                <pre><code>chmod u+x file       # Add execute for user
+chmod g-w file       # Remove write from group
+chmod o=r file       # Set others to read only
+chmod a+x file       # Add execute for all
+chmod u=rwx,g=rx,o=r file    # Set all at once</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘
+                  Copy</button>
+              </div>
+              <h3>Octal Method</h3>
+              <div class="code-block">
+                <pre><code>chmod 755 file    # rwxr-xr-x
+chmod 644 file    # rw-r--r--
+chmod 700 file    # rwx------ (only owner has full access)
+chmod 777 file    # rwxrwxrwx</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h3>Ownership</h3>
+              <div class="code-block">
+                <pre><code>chown user file            # Change user ownership
+chown user:group file      # Change user and group
+chown :group file          # Change group only
+chgrp groupname file       # Change group only (alternative)</code></pre><button class="copy-btn"
+                  onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h3>Special Permissions</h3>
+              <div class="code-block">
+                <pre><code># SUID (runs as file owner)
+chmod u+s file    # Set SUID
+chmod 4744 file   # Set SUID (octal prefix 4)
+
+# SGID
+chmod g+s path    # Set SGID
+chmod 2744 file   # Set SGID (octal prefix 2)
+
+# Sticky Bit (/tmp uses this)
+chmod o+t path    # Set sticky bit
+chmod 1744 file   # Set sticky bit (octal prefix 1)</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘
+                  Copy</button>
+              </div>
+              <div class="warn">⚠️ In production: avoid 777, use SGID for collaborative directories, use sticky bit for
+                shared writable directories like /tmp.</div>
+              <h3>Default Permissions — umask</h3>
+              <div class="code-block">
+                <pre><code>umask             # Check current umask
+umask 027         # Set temporarily (file max=666, dir max=777)
+# User-specific: add to ~/.bashrc
+# Global: add to /etc/profile</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CH-6 -->
+      <div class="article-item" data-topic="services">
+        <div class="article-header" onclick="toggleArticle(this)">
+          <div class="article-ch">CH-6</div>
+          <div class="article-title-wrap">
+            <div class="article-title">Processes, Monitoring & Task Scheduling</div>
+            <div class="article-meta"><span>ps, top, kill, nice, crontab, at, tuned</span><span
+                class="dot">·</span><span class="article-badge badge-inter">Intermediate</span></div>
+          </div>
+          <div class="article-expand">▶</div>
+        </div>
+        <div class="article-body-wrap">
+          <div class="article-body-inner">
+            <div class="article-body">
+              <h3>Job Control</h3>
+              <div class="code-block">
+                <pre><code>command &     # Start in background
+jobs          # List shell jobs
+fg %1         # Bring job 1 to foreground
+bg %1         # Resume stopped job in background
+Ctrl-Z        # Suspend current foreground process
+disown %1     # Remove job from shell table</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘
+                  Copy</button>
+              </div>
+              <h3>Process Listing</h3>
+              <div class="code-block">
+                <pre><code>ps                         # Processes in current terminal
+ps aux                     # All processes, all users
+pgrep firefox              # Find PID by name
+pstree                     # Process tree
+top                        # Real-time viewer</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘
+                  Copy</button>
+              </div>
+              <h3>Signals & Kill</h3>
+              <div class="code-block">
+                <pre><code>kill &lt;PID&gt;             # SIGTERM — polite stop
+kill -9 &lt;PID&gt;          # SIGKILL — immediate force kill
+kill -SIGSTOP &lt;PID&gt;    # Suspend process
+kill -SIGCONT &lt;PID&gt;    # Resume suspended process
+pkill processname       # Kill by name
+killall processname     # Kill all with exact name</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘
+                  Copy</button>
+              </div>
+              <h3>Load Monitoring</h3>
+              <div class="code-block">
+                <pre><code>uptime     # Shows: current time, uptime, load averages
+lscpu      # CPU count — check CPU(s): field</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘
+                  Copy</button>
+              </div>
+              <div class="note">💡 Formula: <strong>Load Average ÷ Number of CPUs</strong>. If result &gt; 1 → CPU
+                demand exceeds capacity.</div>
+              <h3>Priority — nice & renice</h3>
+              <div class="code-block">
+                <pre><code>nice -n 10 command         # Start with lower priority (-20=highest, +19=lowest)
+renice -n -5 -p 12345      # Change running process priority</code></pre><button class="copy-btn"
+                  onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h3>crontab — Recurring Scheduling</h3>
+              <div class="code-block">
+                <pre><code># ┌─────── Minute     (0-59)
+# │ ┌───── Hour       (0-23)
+# │ │ ┌─── DayOfMonth (1-31)
+# │ │ │ ┌─ Month      (1-12)
+# │ │ │ │ ┌ DayOfWeek (0-7, Sun=0 or 7)
+# * * * * * command
+
+crontab -e           # Edit cron jobs
+crontab -l           # List cron jobs
+crontab -r           # Remove ALL cron jobs
+
+*/2 * * * * echo "every 2 minutes"
+0 17-19 * * 3 echo "5-7pm Wednesdays"
+0 16 * * 2,4 echo "4pm Tue and Thu"
+
+* * * * * /scripts/backup.sh >> /var/log/backup.log 2>&1</code></pre><button class="copy-btn"
+                  onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h3>at — One-Time Scheduling</h3>
+              <div class="code-block">
+                <pre><code>at 07:40              # Schedule at specific time
+at now + 5 minutes    # Relative scheduling
+atq                   # View pending jobs
+atrm 1                # Remove job ID 1</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CH-8 -->
+      <div class="article-item" data-topic="services">
+        <div class="article-header" onclick="toggleArticle(this)">
+          <div class="article-ch">CH-8</div>
+          <div class="article-title-wrap">
+            <div class="article-title">Install & Update Software Packages</div>
+            <div class="article-meta"><span>dnf, yum, rpm, repositories</span><span class="dot">·</span><span
+                class="article-badge badge-basic">Beginner</span></div>
+          </div>
+          <div class="article-expand">▶</div>
+        </div>
+        <div class="article-body-wrap">
+          <div class="article-body-inner">
+            <div class="article-body">
+              <h3>Core DNF Commands</h3>
+              <div class="code-block">
+                <pre><code>dnf install packagename         # Install
+dnf remove packagename          # Remove
+dnf info packagename            # View package info
+dnf list installed              # List all installed packages
+dnf search all "keyword"        # Search by keyword
+dnf provides commandname        # Find what package provides a command
+dnf history                     # View transaction history
+dnf history undo 5              # Undo transaction ID 5
+dnf update                      # Update all
+dnf upgrade                     # Update + remove obsolete</code></pre><button class="copy-btn"
+                  onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h3>Package Groups</h3>
+              <div class="code-block">
+                <pre><code>dnf group list                  # List all package groups
+dnf group info "Web Server"     # Info about a group
+dnf group install "Web Server"  # Install a group</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘
+                  Copy</button>
+              </div>
+              <h3>Repository Management</h3>
+              <div class="code-block">
+                <pre><code>dnf repolist             # Check all configured repositories
+
+vim /etc/yum.repos.d/myrepo.repo
+# [myrepo]
+# name=My Repo
+# baseurl=http://your_repo_url/
+# enabled=1
+# gpgcheck=0</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CH-9 -->
+      <div class="article-item" data-topic="storage">
+        <div class="article-header" onclick="toggleArticle(this)">
+          <div class="article-ch">CH-9</div>
+          <div class="article-title-wrap">
+            <div class="article-title">Basic Storage & Partitions</div>
+            <div class="article-meta"><span>fdisk, mkfs, mount, fstab, swap</span><span class="dot">·</span><span
+                class="article-badge badge-inter">Intermediate</span></div>
+          </div>
+          <div class="article-expand">▶</div>
+        </div>
+        <div class="article-body-wrap">
+          <div class="article-body-inner">
+            <div class="article-body">
+              <h3>Check Storage</h3>
+              <div class="code-block">
+                <pre><code>lsblk           # List block devices and partitions
+lsblk -f        # Show filesystem type and UUID
+lsblk -fp       # Full path + filesystem type + UUID
+df -h           # Disk usage of mounted filesystems
+free -h         # RAM and swap usage</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h3>Create Partition with fdisk</h3>
+              <div class="code-block">
+                <pre><code>fdisk /dev/sdb     # Open disk
+# n = new partition
+# p = primary (Enter for default)
+# Enter = accept default first sector
+# +2G = set size
+# p = print/verify
+# w = write and exit
+partprobe          # Notify kernel</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h3>Format & Mount</h3>
+              <div class="code-block">
+                <pre><code>mkfs.xfs /dev/sdb1         # Format as XFS
+mkfs.ext4 /dev/sdb1        # Format as EXT4
+
+mkdir /mnt/data1
+mount /dev/sdb1 /mnt/data1    # Temporary mount
+df -h                          # Verify</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h3>Permanent Mount — /etc/fstab</h3>
+              <div class="code-block">
+                <pre><code>vim /etc/fstab
+/dev/sdb1  /mnt/data1  ext4  defaults  0  0
+
+systemctl daemon-reload
+mount -a        # Test (no output = success)
+df -h           # Verify</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <div class="note">💡 Use UUID instead of device name in /etc/fstab in production. Get UUID:
+                <code>lsblk -f</code>
+              </div>
+              <h3>Complete Storage Workflow</h3>
+              <div class="code-block">
+                <pre><code># 1. Detect disk:      lsblk
+# 2. Create partition: fdisk → n → size → w → partprobe
+# 3. Format:           mkfs.xfs /dev/sdXN
+# 4. Mount point:      mkdir /mnt/data
+# 5. Temp mount:       mount /dev/sdXN /mnt/data
+# 6. Make permanent:   vim /etc/fstab → add entry
+# 7. Test:             systemctl daemon-reload && mount -a
+# 8. Verify:           df -h</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CH-10 -->
+      <div class="article-item" data-topic="storage">
+        <div class="article-header" onclick="toggleArticle(this)">
+          <div class="article-ch">CH-10</div>
+          <div class="article-title-wrap">
+            <div class="article-title">LVM — Logical Volume Manager</div>
+            <div class="article-meta"><span>PV → VG → LV, extend, reduce, delete</span><span class="dot">·</span><span
+                class="article-badge badge-adv">Advanced</span></div>
+          </div>
+          <div class="article-expand">▶</div>
+        </div>
+        <div class="article-body-wrap">
+          <div class="article-body-inner">
+            <div class="article-body">
+              <h3>LVM Hierarchy</h3>
+              <div class="code-block">
+                <pre><code>Disk → Partition → PV → VG → LV → Filesystem → Mount Point</code></pre><button
+                  class="copy-btn" onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <div class="note">💡 Memory code: <strong>PPVLMF</strong> — Partition → PV → VG → LV → Mount → Filesystem
+              </div>
+              <h3>Part A — Create LVM</h3>
+              <div class="code-block">
+                <pre><code># 1. Create LVM partition
+fdisk /dev/sdb  →  n → Enter → +1G → t → 8e(MBR) → w
+partprobe
+
+# 2. Physical Volume
+pvcreate /dev/sdb1
+pvdisplay
+
+# 3. Volume Group
+vgcreate myvg /dev/sdb1
+vgdisplay
+
+# 4. Logical Volume
+lvcreate -n mylv -L 5G myvg       # By size
+lvcreate -n mylv -l 255 myvg      # By PE count
+lvdisplay
+
+# 5. Filesystem
+mkfs.xfs /dev/myvg/mylv
+
+# 6. Mount
+mkdir /mnt/data
+vim /etc/fstab
+# /dev/myvg/mylv  /mnt/data  xfs  defaults  0  0
+mount -a && df -h</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h3>Part B — Extend</h3>
+              <div class="code-block">
+                <pre><code>lvextend -L +1G /dev/myvg/mylv         # Extend by size
+lvextend -L +500M -r /dev/myvg/mylv    # -r also resizes filesystem
+
+xfs_growfs /dev/myvg/mylv              # Resize XFS manually
+resize2fs /mnt/data                     # Resize EXT manually</code></pre><button class="copy-btn"
+                  onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h3>Part C — Reduce (EXT only)</h3>
+              <div class="warn">⚠️ XFS cannot be reduced. Only EXT2/3/4 supports reduction. Always backup before
+                reducing.</div>
+              <div class="code-block">
+                <pre><code>umount /mnt/data
+fsck /dev/myvg/mylv
+resize2fs /dev/myvg/mylv 3G
+lvreduce -L 3G /dev/myvg/mylv
+mount -a</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h3>Part D — Delete (Reverse Order)</h3>
+              <div class="code-block">
+                <pre><code>umount /mnt/data
+vim /etc/fstab              # Remove entry
+systemctl daemon-reload
+lvremove /dev/myvg/mylv
+vgremove myvg
+pvremove /dev/sdb1</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CH-11 -->
+      <div class="article-item" data-topic="services">
+        <div class="article-header" onclick="toggleArticle(this)">
+          <div class="article-ch">CH-11</div>
+          <div class="article-title-wrap">
+            <div class="article-title">Boot Process & systemd Services</div>
+            <div class="article-meta"><span>systemctl, targets, boot stages, password recovery</span><span
+                class="dot">·</span><span class="article-badge badge-adv">Advanced</span></div>
+          </div>
+          <div class="article-expand">▶</div>
+        </div>
+        <div class="article-body-wrap">
+          <div class="article-body-inner">
+            <div class="article-body">
+              <h3>systemd Service Management</h3>
+              <div class="code-block">
+                <pre><code>systemctl start httpd              # Start service
+systemctl stop httpd               # Stop service
+systemctl status httpd             # Check status
+systemctl enable httpd --now       # Enable + start immediately
+systemctl disable httpd --now      # Disable + stop immediately
+systemctl restart httpd            # Stop + start
+systemctl reload httpd             # Reload config (no stop)
+systemctl mask httpd               # Block from starting at all
+systemctl unmask httpd             # Remove block</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘
+                  Copy</button>
+              </div>
+              <h3>Targets — System Modes</h3>
+              <div class="code-block">
+                <pre><code>systemctl get-default                        # Check default
+systemctl set-default multi-user.target      # Set CLI default
+systemctl set-default graphical.target       # Set GUI default
+systemctl isolate multi-user.target          # Switch to CLI now</code></pre><button class="copy-btn"
+                  onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h3>Linux Boot Sequence</h3>
+              <ol>
+                <li><strong>BIOS/UEFI</strong> — POST, hardware check, finds bootloader</li>
+                <li><strong>GRUB2</strong> — Shows boot menu, loads kernel + initramfs</li>
+                <li><strong>Kernel</strong> — Detects hardware, starts systemd (PID 1)</li>
+                <li><strong>systemd</strong> — Reads default target, starts services</li>
+                <li><strong>Login</strong> — CLI or GUI based on target</li>
+              </ol>
+              <h3>Root Password Recovery</h3>
+              <div class="code-block">
+                <pre><code># 1. Reboot → at GRUB menu press Up/Down to stop countdown
+# 2. Press 'e' to edit boot entry
+# 3. Find line starting with 'linux', add at end: rd.break
+# 4. Press Ctrl+X to boot into emergency shell
+
+mount -o remount,rw /sysroot
+chroot /sysroot
+passwd
+touch /.autorelabel
+exit && exit</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <div class="warn">⚠️ The <code>touch /.autorelabel</code> step is required. Without it the system may fail
+                to boot after a password change.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CH-12 -->
+      <div class="article-item" data-topic="services">
+        <div class="article-header" onclick="toggleArticle(this)">
+          <div class="article-ch">CH-12</div>
+          <div class="article-title-wrap">
+            <div class="article-title">Logging & NTP Time Synchronization</div>
+            <div class="article-meta"><span>journald, rsyslog, chrony, timedatectl</span><span class="dot">·</span><span
+                class="article-badge badge-inter">Intermediate</span></div>
+          </div>
+          <div class="article-expand">▶</div>
+        </div>
+        <div class="article-body-wrap">
+          <div class="article-body-inner">
+            <div class="article-body">
+              <h3>journalctl — Read Journal Logs</h3>
+              <div class="code-block">
+                <pre><code>journalctl                  # View all logs
+journalctl -n 20            # View last 20 entries
+journalctl -f               # Follow live logs (like tail -f)
+journalctl -u sshd          # Logs for specific service
+journalctl -b               # Logs since last boot
+journalctl | grep sealert   # Filter for SELinux denials</code></pre><button class="copy-btn"
+                  onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h3>Key Log Files</h3>
+              <div class="table-wrap">
+                <table>
+                  <tr>
+                    <th>File</th>
+                    <th>Contents</th>
+                  </tr>
+                  <tr>
+                    <td><code>/var/log/messages</code></td>
+                    <td>General system messages</td>
+                  </tr>
+                  <tr>
+                    <td><code>/var/log/secure</code></td>
+                    <td>Authentication, SSH, sudo</td>
+                  </tr>
+                  <tr>
+                    <td><code>/var/log/cron</code></td>
+                    <td>Cron job execution</td>
+                  </tr>
+                  <tr>
+                    <td><code>/var/log/boot.log</code></td>
+                    <td>Boot/startup messages</td>
+                  </tr>
+                </table>
+              </div>
+              <h3>NTP with chrony</h3>
+              <div class="code-block">
+                <pre><code>timedatectl                              # Check current settings
+timedatectl list-timezones               # List all timezones
+timedatectl set-timezone Asia/Kolkata    # Set timezone
+
+dnf install chrony -y
+vim /etc/chrony.conf
+# Add: server 172.25.254.254 iburst
+
+systemctl restart chronyd && systemctl enable chronyd
+chronyc sources    # * = synchronized correctly</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘
+                  Copy</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CH-13 -->
+      <div class="article-item" data-topic="security">
+        <div class="article-header" onclick="toggleArticle(this)">
+          <div class="article-ch">CH-13</div>
+          <div class="article-title-wrap">
+            <div class="article-title">SELinux — Security Enhanced Linux</div>
+            <div class="article-meta"><span>Contexts, ports, booleans, semanage</span><span class="dot">·</span><span
+                class="article-badge badge-adv">Advanced</span></div>
+          </div>
+          <div class="article-expand">▶</div>
+        </div>
+        <div class="article-body-wrap">
+          <div class="article-body-inner">
+            <div class="article-body">
+              <h3>Status & Modes</h3>
+              <div class="code-block">
+                <pre><code>sestatus          # Detailed status
+getenforce        # Quick mode check (Enforcing/Permissive/Disabled)
+setenforce 1      # Enforcing (temporary)
+setenforce 0      # Permissive (temporary)
+vim /etc/selinux/config    # Permanent change (requires reboot)</code></pre><button class="copy-btn"
+                  onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h3>View Context Labels</h3>
+              <div class="code-block">
+                <pre><code>ls -Z filename       # File context
+ls -dZ /tmp/         # Directory context
+ps axZ               # Process contexts</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h3>Change Context — Permanent</h3>
+              <div class="code-block">
+                <pre><code># Step 1: Add to SELinux policy database
+semanage fcontext -a -t httpd_sys_content_t "/root/demo.html"
+
+# Wildcard for entire directory:
+semanage fcontext -a -t httpd_sys_content_t "/webdata(/.*)?"
+
+# Step 2: Apply from database
+restorecon -v /root/demo.html     # Single file
+restorecon -Rv /webdata/          # Recursive directory</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘
+                  Copy</button>
+              </div>
+              <h3>Port Contexts</h3>
+              <div class="code-block">
+                <pre><code>semanage port -l | grep http        # Filter by type
+semanage port -a -t http_port_t -p tcp 82    # Add port
+systemctl restart httpd</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h3>Troubleshooting & Booleans</h3>
+              <div class="code-block">
+                <pre><code>journalctl | grep sealert                     # Find denials
+getsebool -a | grep http                      # List booleans
+setsebool httpd_enable_homedirs on -P         # Set permanently</code></pre><button class="copy-btn"
+                  onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CH-15 -->
+      <div class="article-item" data-topic="networking">
+        <div class="article-header" onclick="toggleArticle(this)">
+          <div class="article-ch">CH-15</div>
+          <div class="article-title-wrap">
+            <div class="article-title">Firewall Management</div>
+            <div class="article-meta"><span>firewall-cmd, zones, services, ports</span><span class="dot">·</span><span
+                class="article-badge badge-inter">Intermediate</span></div>
+          </div>
+          <div class="article-expand">▶</div>
+        </div>
+        <div class="article-body-wrap">
+          <div class="article-body-inner">
+            <div class="article-body">
+              <h3>Zones</h3>
+              <div class="table-wrap">
+                <table>
+                  <tr>
+                    <th>Zone</th>
+                    <th>Trust Level</th>
+                  </tr>
+                  <tr>
+                    <td>trusted</td>
+                    <td>All connections accepted</td>
+                  </tr>
+                  <tr>
+                    <td>public</td>
+                    <td>Default — untrusted public network</td>
+                  </tr>
+                  <tr>
+                    <td>dmz</td>
+                    <td>Limited access, for server exposure</td>
+                  </tr>
+                  <tr>
+                    <td>block</td>
+                    <td>All connections rejected</td>
+                  </tr>
+                  <tr>
+                    <td>drop</td>
+                    <td>All connections silently dropped</td>
+                  </tr>
+                </table>
+              </div>
+              <div class="note">💡 Pattern: <code>--get-...</code> view | <code>--add-...</code> allow |
+                <code>--remove-...</code> deny
+              </div>
+              <div class="code-block">
+                <pre><code>firewall-cmd --get-default-zone                     # View default zone
+firewall-cmd --set-default-zone=public              # Set default zone
+
+firewall-cmd --add-service=http --permanent
+firewall-cmd --remove-service=http --permanent
+
+firewall-cmd --add-port=8080/tcp --permanent
+firewall-cmd --remove-port=8080/tcp --permanent
+
+firewall-cmd --add-source=192.168.1.0/24 --zone=internal
+firewall-cmd --reload        # Apply permanent rules
+firewall-cmd --list-all      # View all active rules</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘
+                  Copy</button>
+              </div>
+              <div class="warn">⚠️ Without <code>--permanent</code>, changes are lost on reboot. After using
+                <code>--permanent</code>, run <code>--reload</code> to apply immediately.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CH-14 -->
+      <div class="article-item" data-topic="networking">
+        <div class="article-header" onclick="toggleArticle(this)">
+          <div class="article-ch">CH-14</div>
+          <div class="article-title-wrap">
+            <div class="article-title">Networking & NFS</div>
+            <div class="article-meta"><span>ip, nmtui, NFS mount, autofs</span><span class="dot">·</span><span
+                class="article-badge badge-inter">Intermediate</span></div>
+          </div>
+          <div class="article-expand">▶</div>
+        </div>
+        <div class="article-body-wrap">
+          <div class="article-body-inner">
+            <div class="article-body">
+              <h3>Network Commands</h3>
+              <div class="code-block">
+                <pre><code>ip addr                      # Show IP addresses (modern)
+ip link show                 # List network interfaces
+ip route                     # Show routing table
+ping google.com -c 5         # Test connectivity (5 pings)
+tracepath hostname            # Trace packet route
+ss -ta                       # All TCP connections
+ss -l                        # Listening ports only
+hostname                     # Show current hostname</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘
+                  Copy</button>
+              </div>
+              <h3>Configure Network — nmtui</h3>
+              <div class="code-block">
+                <pre><code>nmtui    # Launch Terminal UI for network config
+# 1. Edit a connection → select interface (e.g., eth0)
+# 2. IPv4 Configuration → change Automatic to Manual
+# 3. Enter IP address, gateway, DNS
+# 4. Back → Set System Hostname
+# 5. Activate a connection → deactivate + reactivate</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘
+                  Copy</button>
+              </div>
+              <h3>NFS — Network File System</h3>
+              <div class="code-block">
+                <pre><code>dnf install nfs-utils -y
+showmount --exports server_hostname    # Check what server shares
+
+mkdir /mountpoint
+mount -t nfs -o rw,sync server:/export /mountpoint
+
+# Permanent (fstab):
+server:/export  /mountpoint  nfs  rw,sync  0  0
+mount -a</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h3>AutoFS — On-Demand Mounting</h3>
+              <div class="warn">⚠️ Do NOT edit <code>/etc/auto.master</code> directly. Create files inside
+                <code>/etc/auto.master.d/</code> instead.
+              </div>
+              <div class="code-block">
+                <pre><code># Direct Mount:
+vim /etc/auto.master.d/direct.autofs
+# /-    /etc/auto.direct
+vim /etc/auto.direct
+# /public   -rw,sync   server:/sharing_directory
+
+# Indirect Mount:
+vim /etc/auto.master.d/indirect.autofs
+# /guest    /etc/auto.indirect
+vim /etc/auto.indirect
+# mount   -rw,sync   server:/sharing_directory
+
+# Wildcard:
+vim /etc/auto.wildcard
+# *   -rw,sync   server:/shares/public/&
+
+systemctl restart autofs</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CH-16 -->
+      <div class="article-item" data-topic="containers">
+        <div class="article-header" onclick="toggleArticle(this)">
+          <div class="article-ch">CH-16</div>
+          <div class="article-title-wrap">
+            <div class="article-title">Podman — Container Management</div>
+            <div class="article-meta"><span>Images, run, volumes, port forwarding, services, rootless</span><span
+                class="dot">·</span><span class="article-badge badge-adv">Advanced</span></div>
+          </div>
+          <div class="article-expand">▶</div>
+        </div>
+        <div class="article-body-wrap">
+          <div class="article-body-inner">
+            <div class="article-body">
+              <h3>Install & Images</h3>
+              <div class="code-block">
+                <pre><code>dnf install container-tools     # Install podman
+podman search httpd              # Search registries
+podman pull IMAGE_URL            # Download image
+podman images                    # List local images
+podman rmi IMAGE_URL             # Remove image</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘
+                  Copy</button>
+              </div>
+              <h3>Containers</h3>
+              <div class="code-block">
+                <pre><code>podman run -d --name webserver IMAGE_URL
+podman ps          # Running containers
+podman ps -a       # All containers (running + stopped)
+podman stop webserver
+podman rm webserver -f    # Force remove
+
+podman exec -it webserver bash      # Enter container shell
+podman cp index.html webserver:/var/www/html/</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘
+                  Copy</button>
+              </div>
+              <h3>Port Forwarding & Volumes</h3>
+              <div class="info">Port forwarding must be set at container creation — it cannot be added later.</div>
+              <div class="code-block">
+                <pre><code>podman run -d --name webserver \
+  -p 8080:80 \
+  -v /backup/:/var/www/html/:Z \
+  IMAGE_URL
+# :Z = SELinux context matching</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h3>Container as systemd Service (Root)</h3>
+              <div class="code-block">
+                <pre><code>cd /etc/systemd/system
+podman generate systemd --name webserver --files
+systemctl daemon-reload
+systemctl enable container-webserver.service --now</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘
+                  Copy</button>
+              </div>
+              <h3>Rootless Containers</h3>
+              <div class="warn">⚠️ SSH directly as the target user. <code>su - username</code> may not behave correctly
+                for rootless container operations.</div>
+              <div class="code-block">
+                <pre><code>mkdir -p ~/.config/systemd/user
+cd ~/.config/systemd/user
+podman generate systemd --name myapp --files
+systemctl --user daemon-reload
+systemctl --user enable container-myapp.service --now
+
+loginctl enable-linger username    # Start at boot, not just at login</code></pre><button class="copy-btn"
+                  onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CMD -->
+      <div class="article-item" data-topic="essentials">
+        <div class="article-header" onclick="toggleArticle(this)">
+          <div class="article-ch">CMD</div>
+          <div class="article-title-wrap">
+            <div class="article-title">tar, find & Shell Scripts</div>
+            <div class="article-meta"><span>Archiving, file search, scripting</span><span class="dot">·</span><span
+                class="article-badge badge-inter">Intermediate</span></div>
+          </div>
+          <div class="article-expand">▶</div>
+        </div>
+        <div class="article-body-wrap">
+          <div class="article-body-inner">
+            <div class="article-body">
+              <h3>tar — Archive & Compress</h3>
+              <div class="table-wrap">
+                <table>
+                  <tr>
+                    <th>Flag</th>
+                    <th>Compression</th>
+                    <th>Extension</th>
+                  </tr>
+                  <tr>
+                    <td><code>-j</code></td>
+                    <td>bzip2</td>
+                    <td>.tar.bz2</td>
+                  </tr>
+                  <tr>
+                    <td><code>-z</code></td>
+                    <td>gzip</td>
+                    <td>.tar.gz</td>
+                  </tr>
+                  <tr>
+                    <td><code>-J</code></td>
+                    <td>xz</td>
+                    <td>.tar.xz</td>
+                  </tr>
+                </table>
+              </div>
+              <div class="code-block">
+                <pre><code>tar -cvzf backup.tar.gz /usr/local      # Create gzip archive
+tar -cvjf backup.tar.bz2 /usr/local     # Create bzip2 archive
+tar -xvf archive.tar.gz                 # Extract archive
+tar -tvzf backup.tar.gz                 # View contents only</code></pre><button class="copy-btn"
+                  onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <h3>find — Locate Files</h3>
+              <div class="code-block">
+                <pre><code>find / -name newfile                 # By exact name
+find / -user jeel                    # By owner
+find / -group devops                 # By group
+find / -perm 750 -type d             # Directories with exact perm
+find / -perm /g+s                    # Files with SGID set
+find / -size +30k -size -45k        # Between 30KB and 45KB
+
+# Execute command on found files:
+find / -user jeel -exec cp -pvr {} /root/jeel-files/ \;
+# {}  = placeholder  |  \;  = end of exec command</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘
+                  Copy</button>
+              </div>
+              <h3>Shell Script Basics</h3>
+              <div class="code-block">
+                <pre><code>vim myscript.sh
+
+#!/bin/bash
+# Shebang — tells system which interpreter to use
+find /usr -perm /g+s -size +30k -size -45k > /root/usr-files
+
+chmod +x myscript.sh    # Give execute permission
+./myscript.sh           # Run directly</code></pre><button class="copy-btn" onclick="copyCode(this)">⎘ Copy</button>
+              </div>
+              <div class="note">💡 <code>sudo !!</code> re-runs your last command with sudo. <code>!!</code> = shell
+                history expansion for the previous command.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /articles-list -->
+
+    <footer>
+      <div class="footer-logo">RHCSA STUDY GUIDE</div>
+      <div class="footer-copy">Personal Class Notes © 2025</div>
+    </footer>
+    <p class="footer-note">Red Hat and RHCSA are trademarks of Red Hat, Inc. This site is not affiliated with or
+      endorsed by Red Hat.<br>All content is based on personal classroom notes and publicly available Linux
+      documentation.</p>
+  </div>
+
+  <!-- ══════════════════════ ABOUT ME ══════════════════════ -->
+  <div id="page-aboutme" class="page">
+    <div class="aboutme-hero">
+      <div class="aboutme-photo-wrap">
+        <div class="aboutme-photo">
+          <img src="20250109_082134.jpg" alt="Harshvardhan Jadeja"
+            onerror="this.style.display='none';this.parentElement.textContent='👤'" />
+        </div>
+        <div class="aboutme-social">
+          <a href="https://github.com/hsjadeja-7117" target="_blank" rel="noopener" class="social-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+            </svg>
+            GitHub
+          </a>
+          <a href="http://www.linkedin.com/in/harshvardhansinh-jadeja-86250b348" target="_blank" rel="noopener"
+            class="social-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+            </svg>
+            LinkedIn
+          </a>
+        </div>
+      </div>
+      <div class="aboutme-info">
+        <div class="aboutme-tag">// DevOps Learner</div>
+        <div class="aboutme-name">Harshvardhansinh S Jadeja<br><span>Here.</span></div>
+        <p class="aboutme-desc">I'm a DevOps learner passionate about Linux, automation, and cloud infrastructure. After
+          getting my RHCSA certification, building hands-on skills in system administration, containers, storage
+          management, and network configuration.<br><br>This website is my personal study journal — every chapter
+          documents real classroom learning, practical commands, and concepts I've applied in a live lab environment.
+        </p>
+        <div class="aboutme-skills">
+          <span class="skill-tag">Linux</span><span class="skill-tag">RHEL 9</span><span class="skill-tag">Bash</span>
+          <span class="skill-tag">Podman</span><span class="skill-tag">LVM</span><span class="skill-tag">SELinux</span>
+          <span class="skill-tag">Networking</span><span class="skill-tag">Git</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="journey-section">
+      <div class="section-label">// My Journey</div>
+      <div class="section-title" style="margin-bottom:40px">How I'm learning<br>Linux.</div>
+      <div class="journey-grid">
+        <div class="journey-card">
+          <div class="journey-step">Step 01</div>
+          <div class="journey-title">Start with the Shell</div>
+          <div class="journey-text">Everything in Linux begins at the command line. Learn basic navigation, file
+            operations, and shell expansions before anything else.</div>
+        </div>
+        <div class="journey-card">
+          <div class="journey-step">Step 02</div>
+          <div class="journey-title">Build a Lab</div>
+          <div class="journey-text">Set up a local RHEL 9 virtual machine using VirtualBox or VMware. Practice every
+            command in a real environment where mistakes don't matter.</div>
+        </div>
+        <div class="journey-card">
+          <div class="journey-step">Step 03</div>
+          <div class="journey-title">Practice Daily</div>
+          <div class="journey-text">Consistency beats intensity. Spend 30–60 minutes daily practising commands. Use
+            these notes as your reference.</div>
+        </div>
+        <div class="journey-card">
+          <div class="journey-step">Step 04</div>
+          <div class="journey-title">Read the Manual</div>
+          <div class="journey-text">Use <code
+              style="background:rgba(0,229,192,0.1);padding:2px 6px;color:var(--accent);font-size:12px">man command</code>
+            constantly. Linux manual pages are the most accurate documentation available.</div>
+        </div>
+        <div class="journey-card">
+          <div class="journey-step">Step 05</div>
+          <div class="journey-title">Understand the Why</div>
+          <div class="journey-text">Don't just memorise commands — understand what they do and why. Knowing the concept
+            means you can figure out the syntax even if you forget it.</div>
+        </div>
+        <div class="journey-card">
+          <div class="journey-step">Step 06</div>
+          <div class="journey-title">Always Verify</div>
+          <div class="journey-text">After every configuration change, verify it worked. Run <code
+              style="background:rgba(0,229,192,0.1);padding:2px 6px;color:var(--accent);font-size:12px">systemctl status</code>
+            and <code
+              style="background:rgba(0,229,192,0.1);padding:2px 6px;color:var(--accent);font-size:12px">df -h</code>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="resources-section">
+      <div class="section-label">// Recommended Resources</div>
+      <div class="section-title" style="margin-bottom:40px">Where to learn<br>more.</div>
+      <div class="resources-grid">
+        <a href="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/9" target="_blank"
+          rel="noopener" class="resource-card">
+          <div class="resource-icon">📘</div>
+          <div class="resource-name">Red Hat Official Docs</div>
+          <div class="resource-desc">The authoritative source for everything RHEL 9. System administration guides,
+            storage, networking, security.</div>
+          <div class="resource-link">access.redhat.com →</div>
+        </a>
+        <a href="https://www.redhat.com/en/services/certification/rhcsa" target="_blank" rel="noopener"
+          class="resource-card">
+          <div class="resource-icon">🎯</div>
+          <div class="resource-name">RHCSA Certification Page</div>
+          <div class="resource-desc">Official Red Hat page for the RHCSA certification. Exam objectives, preparation
+            resources, and registration.</div>
+          <div class="resource-link">redhat.com/rhcsa →</div>
+        </a>
+        <a href="https://developers.redhat.com/learn" target="_blank" rel="noopener" class="resource-card">
+          <div class="resource-icon">⚙️</div>
+          <div class="resource-name">Red Hat Developer Learning</div>
+          <div class="resource-desc">Free learning paths from Red Hat covering Linux, containers, OpenShift, Ansible,
+            and more.</div>
+          <div class="resource-link">developers.redhat.com →</div>
+        </a>
+        <a href="https://www.man7.org/linux/man-pages/" target="_blank" rel="noopener" class="resource-card">
+          <div class="resource-icon">📖</div>
+          <div class="resource-name">Linux Man Pages Online</div>
+          <div class="resource-desc">The complete Linux manual pages online. The most accurate reference for any
+            command.</div>
+          <div class="resource-link">man7.org →</div>
+        </a>
+        <a href="https://github.com/hsjadeja-7117/RHCSA-Linux-Administration-Guide" target="_blank" rel="noopener"
+          class="resource-card">
+          <div class="resource-icon">🐙</div>
+          <div class="resource-name">This Project on GitHub</div>
+          <div class="resource-desc">The full source code of this study guide is open on GitHub. Fork it, suggest
+            improvements, or use it as a reference.</div>
+          <div class="resource-link">github.com →</div>
+        </a>
+        <div class="resource-card" style="cursor:default;opacity:0.5;">
+          <div class="resource-icon">➕</div>
+          <div class="resource-name">More Coming Soon</div>
+          <div class="resource-desc">More curated resources will be added here as the learning journey continues.</div>
+          <div class="resource-link">— updating —</div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div class="footer-logo">RHCSA STUDY GUIDE</div>
+      <div class="footer-copy">Personal Class Notes © 2025</div>
+    </footer>
+    <p class="footer-note">Red Hat and RHCSA are trademarks of Red Hat, Inc. This site is not affiliated with or
+      endorsed by Red Hat.</p>
+  </div>
+
+  <script>
+    /* ════════════════════════════════════════
+       CUSTOM CURSOR (desktop)
+    ════════════════════════════════════════ */
+    const cursor = document.getElementById('cursor');
+    const ring = document.getElementById('cursorRing');
+    if (window.matchMedia('(pointer: fine)').matches && cursor) {
+      let mx = -100, my = -100, rx = -100, ry = -100;
+      document.addEventListener('mousemove', e => {
+        mx = e.clientX; my = e.clientY;
+        cursor.style.left = (mx - 5) + 'px'; cursor.style.top = (my - 5) + 'px';
+      });
+      (function tick() {
+        rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+        ring.style.left = (rx - 18) + 'px'; ring.style.top = (ry - 18) + 'px';
+        requestAnimationFrame(tick);
+      })();
+      document.querySelectorAll('a,button,.article-item,.chapter-card,.resource-card').forEach(el => {
+        el.addEventListener('mouseenter', () => { cursor.style.transform = 'scale(2.5)'; ring.style.transform = 'scale(1.3)'; ring.style.borderColor = 'rgba(0,229,192,0.7)'; });
+        el.addEventListener('mouseleave', () => { cursor.style.transform = 'scale(1)'; ring.style.transform = 'scale(1)'; ring.style.borderColor = 'rgba(0,229,192,0.4)'; });
+      });
+    }
+
+    /* ════════════════════════════════════════
+       SCROLL PROGRESS + BACK TO TOP
+    ════════════════════════════════════════ */
+    const progressBar = document.getElementById('progress-bar');
+    const backTop = document.getElementById('back-top');
+    window.addEventListener('scroll', () => {
+      const scrolled = window.scrollY;
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      progressBar.style.width = (maxScroll > 0 ? (scrolled / maxScroll) * 100 : 0) + '%';
+      if (scrolled > 300) backTop.classList.add('visible');
+      else backTop.classList.remove('visible');
+    }, { passive: true });
+
+    /* ════════════════════════════════════════
+       MOBILE NAV (tablet hamburger)
+    ════════════════════════════════════════ */
+    function toggleMobileNav() {
+      const nav = document.getElementById('mobileNav');
+      const btn = document.getElementById('hamburger');
+      const open = nav.classList.toggle('open');
+      btn.classList.toggle('open', open);
+      btn.setAttribute('aria-expanded', open);
+      document.body.style.overflow = open ? 'hidden' : '';
+    }
+    function closeMobileNav() {
+      const nav = document.getElementById('mobileNav');
+      const btn = document.getElementById('hamburger');
+      nav.classList.remove('open');
+      btn.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    }
+    // Close overlay on Escape
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeMobileNav();
+    });
+
+    /* ════════════════════════════════════════
+       PAGE NAVIGATION
+    ════════════════════════════════════════ */
+    const pageMap = { home: 'bn-home', about: 'bn-about', learning: 'bn-learning', aboutme: 'bn-aboutme' };
+    function showPage(n) {
+      closeMobileNav();
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      const pg = document.getElementById('page-' + n);
+      if (!pg) return false;
+      pg.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Update bottom nav active state
+      Object.values(pageMap).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('active');
+      });
+      const bnId = pageMap[n];
+      if (bnId) {
+        const bn = document.getElementById(bnId);
+        if (bn) bn.classList.add('active');
+      }
+      return false;
+    }
+
+    /* ════════════════════════════════════════
+       SMOOTH ACCORDION
+    ════════════════════════════════════════ */
+    function toggleArticle(header) {
+      const item = header.parentElement;
+      const wasOpen = item.classList.contains('open');
+      // Close all open items
+      document.querySelectorAll('.article-item.open').forEach(el => el.classList.remove('open'));
+      // Toggle clicked item
+      if (!wasOpen) item.classList.add('open');
+    }
+
+    /* ════════════════════════════════════════
+       FILTER
+    ════════════════════════════════════════ */
+    function setFilter(btn, topic) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      // Close all accordions on filter change
+      document.querySelectorAll('.article-item.open').forEach(el => el.classList.remove('open'));
+      document.querySelectorAll('.article-item').forEach(c => {
+        c.style.display = (topic === 'all' || c.dataset.topic === topic) ? 'block' : 'none';
+      });
+    }
+
+    /* ════════════════════════════════════════
+       COPY CODE BUTTON
+    ════════════════════════════════════════ */
+    function copyCode(btn) {
+      const pre = btn.previousElementSibling;
+      const text = pre ? pre.innerText : '';
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.innerHTML;
+        btn.innerHTML = '✓ Copied';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 2000);
+      }).catch(() => {
+        // Fallback for older browsers
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+        document.body.appendChild(ta); ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        btn.innerHTML = '✓ Copied'; btn.classList.add('copied');
+        setTimeout(() => { btn.innerHTML = '⎘ Copy'; btn.classList.remove('copied'); }, 2000);
+      });
+    }
+
+    /* ════════════════════════════════════════
+       COUNTER ANIMATION (IntersectionObserver)
+    ════════════════════════════════════════ */
+    function animateCounter(el, target) {
+      const isLarge = target >= 100;
+      const suffix = '+';
+      let c = 0;
+      const steps = 60;
+      const tick = () => {
+        c = Math.min(c + target / steps, target);
+        el.textContent = Math.floor(c) + suffix;
+        if (c < target) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }
+    const counterObserver = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          animateCounter(e.target, parseInt(e.target.dataset.target));
+          counterObserver.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.5 });
+    document.querySelectorAll('.stat-num').forEach(el => counterObserver.observe(el));
+
+    /* ════════════════════════════════════════
+       PREVENT PULL-TO-REFRESH on mobile
+    ════════════════════════════════════════ */
+    let startY = 0;
+    document.addEventListener('touchstart', e => { startY = e.touches[0].pageY; }, { passive: true });
+    document.addEventListener('touchmove', e => {
+      if (window.scrollY === 0 && e.touches[0].pageY > startY + 10) {
+        // Allow normal scroll, just prevent overscroll bounce pulling
+      }
+    }, { passive: true });
+  </script>
+</body>
+
+</html>
