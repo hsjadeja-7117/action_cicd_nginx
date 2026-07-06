@@ -25,8 +25,8 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOST_DNS }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          username: ${{ secrets.USER_NAME }}
+          key: ${{ secrets.ACTIONCICD }}
           script: |
             sudo apt update
             sudo apt install nginx -y
